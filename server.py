@@ -26,16 +26,16 @@ class SSHServer(paramiko.ServerInterface):
         return paramiko.AUTH_FAILED
 
     def check_channel_pty_request(self, channel, term, width, height, pixelwidth, pixelheight, modes):
-        return True  # Always allow PTY requests
+        return True
 
     def check_channel_shell_request(self, channel):
-        return True  # Always allow shell requests
+        return True 
 
 
 def handle_command(channel):
     try:
         while not channel.closed:
-            channel.settimeout(None)  # Disable timeout for blocking recv call
+            channel.settimeout(None)
             command = channel.recv(1024).decode('utf-8').strip()
             if command == "":
                 logging.info(
@@ -53,10 +53,10 @@ def handle_command(channel):
 
 def process_command(command, channel):
     if command.startswith("echo"):
-        response = command[5:]  # Assumes echo command like "echo message"
+        response = command[5:]
         channel.sendall(response.encode('utf-8'))
     elif command.startswith("get"):
-        filename = command.split(maxsplit=1)[1]  # get filename from command
+        filename = command.split(maxsplit=1)[1] 
         try:
             with open(filename, 'rb') as file:
                 data = file.read()
@@ -64,12 +64,12 @@ def process_command(command, channel):
         except FileNotFoundError:
             channel.sendall(b"File not found")
     elif command.startswith("put"):
-        filename = command.split(maxsplit=1)[1]  # get filename from command
+        filename = command.split(maxsplit=1)[1] 
         with open(filename, 'wb') as file:
             while True:
                 data = channel.recv(1024)
                 if not data:
-                    break  # no more data to write
+                    break
                 file.write(data)
         channel.sendall(b"File received successfully")
     elif command == "exit":
