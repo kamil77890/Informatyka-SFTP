@@ -14,26 +14,26 @@ def main():
                    username=username, password=password)
     print("Connected to the server.")
 
-    # Use an interactive shell
+
     shell = client.invoke_shell()
 
-    # File transfer operation
+
     operation = input("Enter operation (put or get): ")
     filename = input("Enter filename: ")
 
     if operation == "put":
         shell.send(f"put {filename}\n")
-        # Give the server a moment to prepare to receive the file
+
         sleep(1)
         with open(filename, 'rb') as file:
             data = file.read()
             shell.send(data)
-        shell.send(b"\n")  # Indicate end of file transmission
+        shell.send(b"\n")
     elif operation == "get":
         shell.send(f"get {filename}\n")
-        sleep(1)  # Wait for file data to start arriving
+        sleep(1)
         if shell.recv_ready():
-            data = shell.recv(4096)  # Adjust size as necessary
+            data = shell.recv(4096)
             with open(f"received_{filename}", 'wb') as file:
                 file.write(data)
             print(
