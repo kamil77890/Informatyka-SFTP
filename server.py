@@ -21,19 +21,13 @@ class SSHServer(paramiko.ServerInterface):
             return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
 
-    def check_channel_pty_request(self, channel, term, width, height, pixelwidth, pixelheight, modes):
-        return True
-
-    def check_channel_shell_request(self, channel):
-        return True
-
 
 def handle_command(channel):
     try:
         while not channel.closed:
             command = channel.recv(1024).decode('utf-8').strip()
             if command == "":
-                print("No command received, possibly connection was closed.")
+                print("connection lost")
                 break
 
             print(f"Command received: {command}")
@@ -73,7 +67,7 @@ def process_command(command, channel):
         channel.sendall(b"Exiting.")
         channel.close()
     else:
-        channel.sendall(b"Invalid command")
+        channel.sendall(b"invalid command")
 
 
 def main():
@@ -99,7 +93,7 @@ def main():
 
             channel = transport.accept()
             if channel is None:
-                print("No channel. Closing transport.")
+                print("No channel")
                 transport.close()
                 continue
 
