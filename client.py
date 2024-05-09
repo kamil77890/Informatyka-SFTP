@@ -14,9 +14,7 @@ def main():
                    username=username, password=password)
     print("Connected to the server.")
 
-
     shell = client.invoke_shell()
-
 
     operation = input("Enter operation (put or get): ")
     filename = input("Enter filename: ")
@@ -38,8 +36,7 @@ def main():
                 file.write(data)
             print(
                 f"Received file {filename} and saved as received_{filename}.")
-    else:
-        print("Invalid operation.")
+
 
     shell.close()
     client.close()
