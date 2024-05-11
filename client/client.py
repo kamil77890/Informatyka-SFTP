@@ -1,11 +1,13 @@
 import paramiko
 import argparse
+from os import path
 from time import sleep
-
-import paramiko.ssh_exception
 
 
 def main(args):
+    # directory of the folder for all files
+    ROOT_DIR = path.join(__file__, "contents")
+
     host = args.host
     port = args.port
     username = args.user
@@ -31,7 +33,7 @@ def main(args):
     if operation == "put":
         shell.send(f"put {filename}\n")
         sleep(2)
-        with open(filename, 'rb') as file:
+        with open(path.join(ROOT_DIR, filename), 'rb') as file:
             data = file.read()
             shell.send(data)
         shell.send(b"\n")
@@ -47,9 +49,9 @@ def main(args):
                     break
             else:
                 sleep(0.1)
-        with open(f"received_{filename}", 'wb') as file:
+        with open(path.join(ROOT_DIR, filename), 'wb') as file:
             file.write(received_data)
-        print(f"Received file {filename} and saved as received_{filename}.")
+        print(f"Saved file {filename}.")
     else:
         print("Invalid operation.")
 
@@ -67,13 +69,14 @@ if __name__ == "__main__":
       -u / --user
         FTP username. (Required)
       -P / --pwd
-        FTP password. (Optional)
+        FTP password, by default set to none. (Optional)
     """
-    parser = argparse.ArgumentParser(prog='SFTP_Client', description='SFPT Client made in Python')
+    parser = argparse.ArgumentParser(prog='SFTP_Client', description='SFTP Client made in Python')
     parser.add_argument('-H','--host',type=str,required=False,default="localhost")
     parser.add_argument('-p','--port',type=int,required=False,default=22)
     parser.add_argument('-u','--user',type=str,required=True)
     parser.add_argument('-P','--pwd',type=str,required=False)
     args = parser.parse_args()
     print("Custom SFTP client - by kamil77980 & bambus80")
+    print("Press ^C to terminlate")
     main(args)

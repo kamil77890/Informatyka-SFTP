@@ -1,7 +1,11 @@
 import socket
 import paramiko
 import argparse
+from os import path
 
+
+# directory of the folder for all files
+ROOT_DIR = path.join(__file__, "contents")
 
 class SSHServer(paramiko.ServerInterface):
     def __init__(self, args) -> None:
@@ -51,22 +55,22 @@ def process_command(command, channel):
         channel.sendall(response.encode('utf-8'))
     elif cmd == "get":
         filename = parts[1]
-        with open(filename, 'rb') as file:
+        with open(path.join(ROOT_DIR, filename), 'rb') as file:
             data = file.read()
             print(data)
         channel.sendall(data)
 
     elif cmd == "put":
         filename = parts[1]
-        with open(filename, 'wb') as file:
+        with open(path.join(ROOT_DIR, filename), 'wb') as file:
             while True:
                 data = channel.recv(4096)
                 if not data or data.endswith(b'\n'):
                     break
                 file.write(data)
-            channel.sendall("Udało się!")
+            channel.sendall(f"File {filename} sent!")
     else:
-        channel.sendall(b"Jestes glupi???")
+        channel.sendall(b"?????")
 
 
 def main(args):
@@ -103,13 +107,14 @@ if __name__ == "__main__":
       -u / --user
         FTP username. (Required)
       -P / --pwd
-        FTP password. (Optional)
+        FTP password, by default set to none. (Optional)
     """
-    parser = argparse.ArgumentParser(prog='SFTP_Server', description='SFPT Server made in Python')
+    parser = argparse.ArgumentParser(prog='SFTP_Server', description='SFTP Server made in Python')
     parser.add_argument('-H','--host',type=str,required=False,default="localhost")
     parser.add_argument('-p','--port',type=int,required=False,default=22)
     parser.add_argument('-u','--user',type=str,required=True)
     parser.add_argument('-P','--pwd',type=str,required=False)
     args = parser.parse_args()
     print("Custom SFTP server - by kamil77980 & bambus80")
+    print("Press ^C to terminlate")
     main(args)
