@@ -1,16 +1,22 @@
 import socket
 import paramiko
-
-
-HOST = 'localhost'
-PORT = 22
+import argparse
 
 
 class SSHServer(paramiko.ServerInterface):
+    def __init__(self, args) -> None:
+        self.username = args.user
+        self.password = args.pwd
+        super().__init__()
+
     def check_auth_password(self, username, password):
-        if username == "abc" and password == "def":
+        if username == self.username:
+            # if password is present then check it, if not then don't bother
+            if self.password:
+                if password == self.password:
+                    return paramiko.AUTH_SUCCESSFUL
+                return paramiko.AUTH_FAILED
             return paramiko.AUTH_SUCCESSFUL
-        return paramiko.AUTH_FAILED
 
     def check_channel_request(self, kind, chanid):
         if kind == 'session':
@@ -63,17 +69,18 @@ def process_command(command, channel):
         channel.sendall(b"Jestes glupi???")
 
 
-def main():
+def main(args):
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server_socket.bind((HOST, PORT))
+    server_socket.bind((args.host, args.port))
     server_socket.listen(1)
+    print(f"Server initialized on {args.host}:{args.port}")
 
     while True:
         client_socket, client_address = server_socket.accept()
         transport = paramiko.Transport(client_socket)
         transport.add_server_key(paramiko.RSAKey.generate(2048))
-        server = SSHServer()
+        server = SSHServer(args)
 
         transport.start_server(server=server)
 
@@ -87,4 +94,22 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    """
+    SFTP server args:
+      -H / --host:
+        Host address, by default set to localhost. (Optional)
+      -p / --port:
+        Host port, by default set to 22. (Optional)
+      -u / --user
+        FTP username. (Required)
+      -P / --pwd
+        FTP password. (Optional)
+    """
+    parser = argparse.ArgumentParser(prog='SFTP_Server', description='SFPT Server made in Python')
+    parser.add_argument('-H','--host',type=str,required=False,default="localhost")
+    parser.add_argument('-p','--port',type=int,required=False,default=22)
+    parser.add_argument('-u','--user',type=str,required=True)
+    parser.add_argument('-P','--pwd',type=str,required=False)
+    args = parser.parse_args()
+    print("Custom SFTP server - by kamil77980 & bambus80")
+    main(args)

@@ -1,20 +1,29 @@
 import paramiko
+import argparse
 from time import sleep
 
+import paramiko.ssh_exception
 
-def main():
-    host = "localhost"
-    port = 22
-    username = "abc"
-    password = "def"
 
-    client = paramiko.SSHClient()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client.connect(hostname=host, port=port,
-                   username=username, password=password)
-    print("Połączenie udane!!!!")
+def main(args):
+    host = args.host
+    port = args.port
+    username = args.user
+    password = args.pwd
+
+    try:
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        client.connect(hostname=host, port=port,
+                       username=username, password=password)
+        print(f"Connected to {host}:{port}!")
+    except Exception as e:
+        print(f"Failed to connect to {host}:{port}!")
+        print(e)
+        return
 
     shell = client.invoke_shell()
+    print("Client initialized")
 
     operation = input("Enter operation (put or get): ")
     filename = input("Enter filename: ")
@@ -49,4 +58,22 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    """
+    SFTP client args:
+      -H / --host:
+        Host address, by default set to localhost. (Optional)
+      -p / --port:
+        Host port, by default set to 22. (Optional)
+      -u / --user
+        FTP username. (Required)
+      -P / --pwd
+        FTP password. (Optional)
+    """
+    parser = argparse.ArgumentParser(prog='SFTP_Client', description='SFPT Client made in Python')
+    parser.add_argument('-H','--host',type=str,required=False,default="localhost")
+    parser.add_argument('-p','--port',type=int,required=False,default=22)
+    parser.add_argument('-u','--user',type=str,required=True)
+    parser.add_argument('-P','--pwd',type=str,required=False)
+    args = parser.parse_args()
+    print("Custom SFTP client - by kamil77980 & bambus80")
+    main(args)
