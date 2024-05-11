@@ -1,64 +1,52 @@
-import tkinter as tk
-from tkinter import filedialog, messagebox, simpledialog
 import paramiko
 from time import sleep
-import os
 
 
-def connect_to_server(host, port, username, password):
+def main():
+    host = "localhost"
+    port = 22
+    username = "abc"
+    password = "def"
+
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    try:
-        client.connect(hostname=host, port=port,
-                       username=username, password=password)
-        return client
-    except Exception as e:
-        messagebox.showerror("Connection Failed", str(e))
-        return None
+    client.connect(hostname=host, port=port,
+                   username=username, password=password)
+    print("Połączenie udane!!!!")
 
+    shell = client.invoke_shell()
 
-def send_command(client, operation, filepath):
-    filename = os.path.basename(filepath)
-    if client:
-        shell = client.invoke_shell()
-        if operation == "put":
-            shell.send(f"put {filename}\n")
-            sleep(1)
-            with open(filepath, 'rb') as file:
-                data = file.read()
-                shell.send(data)
-            shell.send(b"\n")
-        elif operation == "get":
-            shell.send(f"get {filename}\n")
-            sleep(1)
+    operation = input("Enter operation (put or get): ")
+    filename = input("Enter filename: ")
+
+    if operation == "put":
+        shell.send(f"put {filename}\n")
+        sleep(2)
+        with open(filename, 'rb') as file:
+            data = file.read()
+            shell.send(data)
+        shell.send(b"\n")
+    elif operation == "get":
+        shell.send(f"get {filename}\n")
+        sleep(1)
+        received_data = bytearray()
+        while True:
             if shell.recv_ready():
                 data = shell.recv(4096)
-                save_path = os.path.join(os.path.dirname(
-                    filepath), f"received_{filename}")
-                with open(save_path, 'wb') as file:
-                    file.write(data)
-                messagebox.showinfo(
-                    "Success", f"Received file {filename} and saved as {save_path}.")
-        shell.close()
+                received_data.extend(data)
+                if len(data) < 4096:
+                    break
+            else:
+                sleep(0.1)
+        with open(f"received_{filename}", 'wb') as file:
+            file.write(received_data)
+        print(f"Received file {filename} and saved as received_{filename}.")
+    else:
+        print("Invalid operation.")
 
-
-def main(host, port, username, password):
-    client = connect_to_server(host, port, username, password)
-    if client:
-        messagebox.showinfo("Success", "Connected to the server.")
-
-        operation = simpledialog.askstring(
-            "Input", "Enter operation (put or get):")
-        if operation in ["put", "get"]:
-            filename = filedialog.askopenfilename(
-            ) if operation == "put" else filedialog.asksaveasfilename()
-            send_command(client, operation, filename)
-        else:
-            messagebox.showerror("Error", "Invalid operation.")
-        client.close()
+    shell.close()
+    client.close()
 
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    root.withdraw()
-    main("localhost", 22, "abc", "def")
+    main()
