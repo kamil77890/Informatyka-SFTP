@@ -1,16 +1,16 @@
 import socket
 import paramiko
 import argparse
-from os import path
+from os import path, listdir
 
 
 # directory of the folder for all files
-ROOT_DIR = path.join(__file__, "contents")
+ROOT_DIR = path.join(path.dirname(__file__), "contents")
 
 class SSHServer(paramiko.ServerInterface):
     def __init__(self, args) -> None:
         self.username = args.user
-        self.password = args.pwd
+        self.password = args.password
         super().__init__()
 
     def check_auth_password(self, username, password):
@@ -39,7 +39,7 @@ def handle_command(channel):
         channel.settimeout(None)
         command = channel.recv(1024).decode('utf-8').strip()
         if command == "":
-            print("Invalid Command")
+            print(f"Invalid Command - `{command}`")
         process_command(command, channel)
 
     channel.close()
@@ -57,7 +57,6 @@ def process_command(command, channel):
         filename = parts[1]
         with open(path.join(ROOT_DIR, filename), 'rb') as file:
             data = file.read()
-            print(data)
         channel.sendall(data)
 
     elif cmd == "put":
@@ -69,6 +68,8 @@ def process_command(command, channel):
                     break
                 file.write(data)
             channel.sendall(f"File {filename} sent!")
+    elif cmd == "ls":
+        channel.sendall('\n'.join(listdir(ROOT_DIR)).encode('utf-8'))
     else:
         channel.sendall(b"?????")
 
@@ -106,14 +107,14 @@ if __name__ == "__main__":
         Host port, by default set to 22. (Optional)
       -u / --user
         FTP username. (Required)
-      -P / --pwd
+      -P / --password
         FTP password, by default set to none. (Optional)
     """
     parser = argparse.ArgumentParser(prog='SFTP_Server', description='SFTP Server made in Python')
     parser.add_argument('-H','--host',type=str,required=False,default="localhost")
     parser.add_argument('-p','--port',type=int,required=False,default=22)
     parser.add_argument('-u','--user',type=str,required=True)
-    parser.add_argument('-P','--pwd',type=str,required=False)
+    parser.add_argument('-P','--password',type=str,required=False)
     args = parser.parse_args()
     print("Custom SFTP server - by kamil77980 & bambus80")
     print("Press ^C to terminlate")
