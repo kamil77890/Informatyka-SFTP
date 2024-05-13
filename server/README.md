@@ -1,4 +1,4 @@
-# SFTP Client by kamil77890 & bambus80
+# SFTP Server by kamil77890 & bambus80
 
 This is the server part of a custom implementation of the SFTP (SSH File Transfer Protocol) in Python, using SSH methods from the `paramiko` library. It is run from command line.
 
@@ -19,6 +19,7 @@ FTP username. **(Required)**
 #### -P / --password
 
 FTP password, by default set to none. (Optional)
+
 > If the password is left blank, the server will accept any connection matching the username. For security reasons, we do not recommend it.
 
 # Files
