@@ -34,7 +34,7 @@ def main(args):
             print("Connection info:")
             print(f"Server: {host}:{port}")
             if password: 
-                print(f"Username: {username} | Password: {"*" * len(password)}")
+                print(f"Username: {username} | Password: {'*' * len(password)}")
             else:
                 print(f"Username: {username} | No password")
             print("=====")
